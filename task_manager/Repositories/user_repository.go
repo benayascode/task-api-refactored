@@ -9,11 +9,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type UserRepository struct {
+type MongoUserRepository struct {
 	Collection *mongo.Collection
 }
 
-func (ur *UserRepository) Register(ctx context.Context, user Domain.User) error {
+func (ur *MongoUserRepository) Register(ctx context.Context, user Domain.User) error {
 	count, _ := ur.Collection.CountDocuments(ctx, bson.M{"user_name": user.UserName})
 	if count > 0 {
 		return errors.New("username is already taken")
@@ -23,7 +23,7 @@ func (ur *UserRepository) Register(ctx context.Context, user Domain.User) error 
 	return err
 }
 
-func (ur *UserRepository) Authenticate(ctx context.Context, username string) (Domain.User, error) {
+func (ur *MongoUserRepository) Authenticate(ctx context.Context, username string) (Domain.User, error) {
 	var user Domain.User
 	err := ur.Collection.FindOne(ctx, bson.M{"user_name": username}).Decode(&user)
 	if err != nil {
@@ -32,7 +32,7 @@ func (ur *UserRepository) Authenticate(ctx context.Context, username string) (Do
 	return user, nil
 }
 
-func (ur *UserRepository) Promote(ctx context.Context, username string) error {
+func (ur *MongoUserRepository) Promote(ctx context.Context, username string) error {
 	res, err := ur.Collection.UpdateOne(ctx, bson.M{"user_name": username}, bson.M{"$set": bson.M{"role": "Admin"}})
 	if err != nil || res.MatchedCount == 0 {
 		return errors.New("user not found")

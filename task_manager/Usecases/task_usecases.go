@@ -3,11 +3,10 @@ package Usecases
 import (
 	"context"
 	"task_manager/Domain"
-	"task_manager/Repositories"
 )
 
 type TaskUseCase struct {
-	TaskRepo *Repositories.TaskRepository
+	TaskRepo Domain.TaskRepository
 }
 
 func (tu *TaskUseCase) GetAllTasks(ctx context.Context) ([]Domain.Task, error) {

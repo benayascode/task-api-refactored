@@ -12,11 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type TaskRepository struct {
+type MongoTaskRepository struct {
 	Collection *mongo.Collection
 }
 
-func (tr *TaskRepository) GetAllTasks(ctx context.Context) ([]Domain.Task, error) {
+func (tr *MongoTaskRepository) GetAllTasks(ctx context.Context) ([]Domain.Task, error) {
 	var tasks []Domain.Task
 
 	cursor, err := tr.Collection.Find(ctx, bson.M{})
@@ -33,7 +33,7 @@ func (tr *TaskRepository) GetAllTasks(ctx context.Context) ([]Domain.Task, error
 	return tasks, nil
 }
 
-func (tr *TaskRepository) GetTaskByID(ctx context.Context, id int) (Domain.Task, error) {
+func (tr *MongoTaskRepository) GetTaskByID(ctx context.Context, id int) (Domain.Task, error) {
 	var task Domain.Task
 	err := tr.Collection.FindOne(ctx, bson.M{"user_id": id}).Decode(&task)
 	if err != nil {
@@ -42,7 +42,7 @@ func (tr *TaskRepository) GetTaskByID(ctx context.Context, id int) (Domain.Task,
 	return task, nil
 }
 
-func (tr *TaskRepository) CreateTask(ctx context.Context, task Domain.Task) error {
+func (tr *MongoTaskRepository) CreateTask(ctx context.Context, task Domain.Task) error {
 	if task.ID.IsZero() {
 		task.ID = primitive.NewObjectID()
 	}
@@ -60,7 +60,7 @@ func (tr *TaskRepository) CreateTask(ctx context.Context, task Domain.Task) erro
 	return err
 }
 
-func (tr *TaskRepository) UpdateTask(ctx context.Context, id int, updated Domain.Task) error {
+func (tr *MongoTaskRepository) UpdateTask(ctx context.Context, id int, updated Domain.Task) error {
 	filter := bson.M{"user_id": id}
 	update := bson.M{
 		"$set": bson.M{
@@ -78,7 +78,7 @@ func (tr *TaskRepository) UpdateTask(ctx context.Context, id int, updated Domain
 	return nil
 }
 
-func (tr *TaskRepository) DeleteTask(ctx context.Context, id int) error {
+func (tr *MongoTaskRepository) DeleteTask(ctx context.Context, id int) error {
 	res, err := tr.Collection.DeleteOne(ctx, bson.M{"user_id": id})
 	if err != nil || res.DeletedCount == 0 {
 		return errors.New("task not found")

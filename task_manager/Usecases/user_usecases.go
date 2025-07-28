@@ -3,16 +3,24 @@ package Usecases
 import (
 	"context"
 	"task_manager/Domain"
-	"task_manager/Infrastructure"
-	"task_manager/Repositories"
 )
 
 type UserUseCase struct {
-	UserRepo *Repositories.UserRepository
+	UserRepo        Domain.UserRepository
+	PasswordService Domain.PasswordService
+	JWTService      Domain.JWTService
+}
+
+func NewUserUseCase(userRepo Domain.UserRepository, passwordService Domain.PasswordService, jwtService Domain.JWTService) *UserUseCase {
+	return &UserUseCase{
+		UserRepo:        userRepo,
+		PasswordService: passwordService,
+		JWTService:      jwtService,
+	}
 }
 
 func (uu *UserUseCase) Register(ctx context.Context, username, password string) error {
-	hashed, err := Infrastructure.HashPassword(password)
+	hashed, err := uu.PasswordService.HashPassword(password)
 	if err != nil {
 		return err
 	}
@@ -29,10 +37,10 @@ func (uu *UserUseCase) Login(ctx context.Context, username, password string) (st
 	if err != nil {
 		return "", err
 	}
-	if !Infrastructure.CheckPasswordHash(user.Password, password) {
+	if !uu.PasswordService.CheckPasswordHash(user.Password, password) {
 		return "", err
 	}
-	return Infrastructure.GenerateToken(user)
+	return uu.JWTService.GenerateToken(user)
 }
 
 func (uu *UserUseCase) Promote(ctx context.Context, username string) error {

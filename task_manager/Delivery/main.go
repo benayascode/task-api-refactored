@@ -7,6 +7,7 @@ import (
 	routers "task_manager/Delivery/router"
 	"task_manager/Repositories"
 	"task_manager/Usecases"
+	"task_manager/Infrastructure"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -19,11 +20,13 @@ func main() {
 	}
 
 	db := client.Database("taskmanagerdb")
-	taskRepo := &Repositories.TaskRepository{Collection: db.Collection("tasks")}
-	userRepo := &Repositories.UserRepository{Collection: db.Collection("users")}
+	taskRepo := &Repositories.MongoTaskRepository{Collection: db.Collection("tasks")}
+	userRepo := &Repositories.MongoUserRepository{Collection: db.Collection("users")}
+	passwordService := Infrastructure.NewBcryptPasswordService()
+	jwtService := Infrastructure.NewSimpleJWTService()
 
 	taskUC := &Usecases.TaskUseCase{TaskRepo: taskRepo}
-	userUC := &Usecases.UserUseCase{UserRepo: userRepo}
+	userUC := Usecases.NewUserUseCase(userRepo, passwordService, jwtService)
 
 	ctr := &controllers.Controller{TaskUC: taskUC, UserUC: userUC}
 
